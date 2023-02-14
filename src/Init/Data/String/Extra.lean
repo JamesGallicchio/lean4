@@ -33,10 +33,6 @@ opaque fromUTF8Unchecked (a : @& ByteArray) : String
 @[extern "lean_string_to_utf8"]
 opaque toUTF8 (a : @& String) : ByteArray
 
-theorem one_le_csize (c : Char) : 1 ≤ csize c := by
-  simp [csize, Char.utf8Size]
-  repeat (first | split | decide)
-
 @[simp] theorem pos_lt_eq (p₁ p₂ : Pos) : (p₁ < p₂) = (p₁.1 < p₂.1) := rfl
 
 @[simp] theorem pos_add_char (p : Pos) (c : Char) : (p + c).byteIdx = p.byteIdx + csize c := rfl

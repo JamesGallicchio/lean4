@@ -610,6 +610,12 @@ protected theorem eq_add_of_sub_eq {a b c : Nat} (hle : b ≤ a) (h : a - b = c)
 protected theorem sub_eq_of_eq_add {a b c : Nat} (h : a = c + b) : a - b = c := by
   rw [h, Nat.add_sub_cancel]
 
+private theorem sub_lt_sub_left : ∀ {k m n : Nat}, k < m → k < n → m - n < m - k
+  | 0, m+1, n+1, _, _ => by rw [Nat.add_sub_add_right]; exact Nat.lt_succ_of_le (Nat.sub_le _ _)
+  | k+1, m+1, n+1, h1, h2 => by
+    rw [Nat.add_sub_add_right, Nat.add_sub_add_right]
+    exact Nat.sub_lt_sub_left (Nat.lt_of_succ_lt_succ h1) (Nat.lt_of_succ_lt_succ h2)
+
 theorem le_add_of_sub_le {a b c : Nat} (h : a - b ≤ c) : a ≤ c + b := by
   match le.dest h, Nat.le_total a b with
   | _, Or.inl hle =>

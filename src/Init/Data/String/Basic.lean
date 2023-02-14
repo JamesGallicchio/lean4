@@ -374,19 +374,43 @@ def toNat? (s : String) : Option Nat :=
   else
     none
 
+theorem one_le_csize (c : Char) : 1 ≤ csize c := by
+  match c with
+  | ⟨⟨c,_⟩,_⟩ =>
+  simp [csize, Char.utf8Size]
+  simp [ite, instDecidableLeUInt32InstLEUInt32, UInt32.decLe, inferInstanceAs]
+  simp [Fin.decLe, UInt32.ofNatCore]
+  match Nat.decLe c 127 with
+  | .isTrue h => simp [h]
+  | .isFalse h =>
+  simp [h]
+  match Nat.decLe c 2047 with
+  | .isTrue h => simp [h]
+  | .isFalse h =>
+  simp [h]
+  match Nat.decLe c 65535 with
+  | .isTrue h => simp [h]
+  | .isFalse h =>
+  simp [h]
+
 /--
 Return `true` iff the substring of byte size `sz` starting at position `off1` in `s1` is equal to that starting at `off2` in `s2.`.
 False if either substring of that byte size does not exist. -/
-partial def substrEq (s1 : String) (off1 : String.Pos) (s2 : String) (off2 : String.Pos) (sz : Nat) : Bool :=
+def substrEq (s1 : String) (off1 : String.Pos) (s2 : String) (off2 : String.Pos) (sz : Nat) : Bool :=
   off1.byteIdx + sz ≤ s1.endPos.byteIdx && off2.byteIdx + sz ≤ s2.endPos.byteIdx && loop off1 off2 { byteIdx := off1.byteIdx + sz }
 where
   loop (off1 off2 stop1 : Pos) :=
-    if off1.byteIdx >= stop1.byteIdx then
+    if h : off1.byteIdx >= stop1.byteIdx then
       true
     else
-      let c₁ := s1.get off1
-      let c₂ := s2.get off2
+      have c₁ := s1.get off1
+      have c₂ := s2.get off2
+      have : stop1.byteIdx - (off1.byteIdx + csize c₁)
+            < stop1.byteIdx - off1.byteIdx :=
+        Nat.sub_lt_sub_left (Nat.gt_of_not_le h)
+          (Nat.add_lt_add_left (n := 0) (one_le_csize _) off1.byteIdx)
       c₁ == c₂ && loop (off1 + c₁) (off2 + c₂) stop1
+termination_by loop off1 off2 stop1 => stop1.byteIdx - off1.byteIdx
 
 /-- Return true iff `p` is a prefix of `s` -/
 def isPrefixOf (p : String) (s : String) : Bool :=
